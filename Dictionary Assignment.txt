@@ -1,0 +1,80 @@
+# Exercise 1: Create a Dictionary
+person = {
+    "Name": "Alice",
+    "Age": 25,
+    "City": "New York"
+}
+print(person)
+
+# Exercise 2: Access Dictionary Elements
+print(person["City"])
+
+# Exercise 3: Add and Modify Elements
+person["email"] = "alice@example.com"
+person["Age"] = 26
+print(person)
+
+# Exercise 4: Remove Elements
+person.pop("City")
+print(person)
+
+# Exercise 5: Check if a Key Exists
+if "email" in person:
+    print("Email key exists.")
+else:
+    print("Email key does not exist.")
+
+if "phone" in person:
+    print("Phone key exists.")
+else:
+    print("Phone key does not exist.")
+
+# Exercise 6: Loop Through a Dictionary
+for key, value in person.items():
+    print(f"{key}: {value}")
+
+for key in person.keys():
+    print(key)
+
+for value in person.values():
+    print(value)
+
+# Exercise 7: Nested Dictionary
+employees = {
+    101: {"name": "Bob", "job": "Engineer"},
+    102: {"name": "Sue", "job": "Designer"},
+    103: {"name": "Tom", "job": "Manager"}
+}
+print(employees[102])
+
+employees[104] = {"name": "Linda", "job": "HR"}
+print(employees)
+
+# Exercise 8: Dictionary Comprehension
+squares = {x: x**2 for x in range(1, 6)}
+print(squares)
+
+# Exercise 9: Merge Two Dictionaries
+dict1 = {"a": 1, "b": 2}
+dict2 = {"c": 3, "d": 4}
+dict1.update(dict2)
+print(dict1)
+
+# Exercise 10: Default Dictionary Values
+letters_to_numbers = {"a": 1, "b": 2, "c": 3}
+print(letters_to_numbers.get("b"))
+print(letters_to_numbers.get("d", 0))
+
+# Exercise 11: Dictionary from Two Lists
+keys = ["name", "age", "city"]
+values = ["Eve", 29, "San Francisco"]
+resulting_dict = dict(zip(keys, values))
+print(resulting_dict)
+
+# Exercise 12: Count Occurrences of Words
+sentence = "the quick brown fox jumps over the lazy dog the fox"
+words = sentence.split()
+word_count = {}
+for word in words:
+    word_count[word] = word_count.get(word, 0) + 1
+print(word_count)

@@ -1,0 +1,146 @@
+
+
+Exercise -  Product Analysis Sales
+
+
+# 1.Join the product_df and sales_df DataFrames on ProductID to create a combined DataFrame with product and sales data.
+combined_df = product_df.join(sales_df, on="ProductID")
+print("Joined dataframes: ")
+combined_df.show()
+
+
+Output:
++---------+-----------+-----------+-----+------+--------+
+|ProductID|ProductName|   Category|Price|SaleID|Quantity|
++---------+-----------+-----------+-----+------+--------+
+|        1|     Laptop|Electronics|50000|     1|       2|
+|        1|     Laptop|Electronics|50000|     4|       1|
+|        2| Smartphone|Electronics|30000|     2|       1|
+|        2| Smartphone|Electronics|30000|     6|       2|
+|        3|      Table|  Furniture|15000|     3|       3|
+|        3|      Table|  Furniture|15000|     8|       1|
+|        4|      Chair|  Furniture| 5000|     5|       5|
+|        5| Headphones|Electronics| 2000|     7|      10|
++---------+-----------+-----------+-----+------+--------+
+
+
+# 2. For each product, calculate the total sales value by multiplying the price by the quantity sold.
+sales_value_df = combined_df.withColumn("TotalSalesValue", col("Price") * col("Quantity"))
+print("Total sales value: ")
+sales_value_df.show()
+
+
+Output:
+Total sales value: 
++---------+-----------+-----------+-----+------+--------+---------------+
+|ProductID|ProductName|   Category|Price|SaleID|Quantity|TotalSalesValue|
++---------+-----------+-----------+-----+------+--------+---------------+
+|        1|     Laptop|Electronics|50000|     1|       2|         100000|
+|        1|     Laptop|Electronics|50000|     4|       1|          50000|
+|        2| Smartphone|Electronics|30000|     2|       1|          30000|
+|        2| Smartphone|Electronics|30000|     6|       2|          60000|
+|        3|      Table|  Furniture|15000|     3|       3|          45000|
+|        3|      Table|  Furniture|15000|     8|       1|          15000|
+|        4|      Chair|  Furniture| 5000|     5|       5|          25000|
+|        5| Headphones|Electronics| 2000|     7|      10|          20000|
++---------+-----------+-----------+-----+------+--------+---------------+
+
+
+# 3.Group the data by the Category column and calculate the total sales value for each product category
+category_sales_value_df = sales_value_df.groupBy("Category").agg({"TotalSalesValue": "sum"})
+print("Category wise sales value: ")
+category_sales_value_df.show()
+
+
+Output:
+Category wise sales value: 
++-----------+--------------------+
+|   Category|sum(TotalSalesValue)|
++-----------+--------------------+
+|Electronics|              260000|
+|  Furniture|               85000|
++-----------+--------------------+
+# 4.Find the product that generated highest sales value
+highest_sales_product = sales_value_df.orderBy(col("TotalSalesValue").desc()).limit(1)
+print("Product with highest sales value: ")
+highest_sales_product.show()
+
+
+Output:
+Product with highest sales value: 
++---------+-----------+-----------+-----+------+--------+---------------+
+|ProductID|ProductName|   Category|Price|SaleID|Quantity|TotalSalesValue|
++---------+-----------+-----------+-----+------+--------+---------------+
+|        1|     Laptop|Electronics|50000|     1|       2|         100000|
++---------+-----------+-----------+-----+------+--------+---------------+
+
+
+# 5. Sort the products by total sales value in descending order
+sorted_products_df = sales_value_df.orderBy(col("TotalSalesValue").desc())
+print("Sorted products by total sales value: ")
+sorted_products_df.show()
+
+
+Output:
+Sorted products by total sales value: 
++---------+-----------+-----------+-----+------+--------+---------------+
+|ProductID|ProductName|   Category|Price|SaleID|Quantity|TotalSalesValue|
++---------+-----------+-----------+-----+------+--------+---------------+
+|        1|     Laptop|Electronics|50000|     1|       2|         100000|
+|        2| Smartphone|Electronics|30000|     6|       2|          60000|
+|        1|     Laptop|Electronics|50000|     4|       1|          50000|
+|        3|      Table|  Furniture|15000|     3|       3|          45000|
+|        2| Smartphone|Electronics|30000|     2|       1|          30000|
+|        4|      Chair|  Furniture| 5000|     5|       5|          25000|
+|        5| Headphones|Electronics| 2000|     7|      10|          20000|
+|        3|      Table|  Furniture|15000|     8|       1|          15000|
++---------+-----------+-----------+-----+------+--------+---------------+
+# 6. Count the number of sales for each product
+sales_count_df = sales_value_df.groupBy("ProductID","ProductName").agg({"Quantity": "sum"})
+print("Number of sales for each product: ")
+sales_count_df.show()
+
+
+Output:
+Number of sales for each product: 
++---------+-----------+-------------+
+|ProductID|ProductName|sum(Quantity)|
++---------+-----------+-------------+
+|        1|     Laptop|            3|
+|        2| Smartphone|            3|
+|        3|      Table|            4|
+|        4|      Chair|            5|
+|        5| Headphones|           10|
++---------+-----------+-------------+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#7. Filter out the products that have a total sales value greater than ₹50,000
+high_value_products_df = sales_value_df.filter(col("TotalSalesValue") > 50000)
+print("Products with total sales value greater than ₹50,000: ")
+high_value_products_df.show()
+
+
+Output:
+Products with total sales value greater than ₹50,000: 
++---------+-----------+-----------+-----+------+--------+---------------+
+|ProductID|ProductName|   Category|Price|SaleID|Quantity|TotalSalesValue|
++---------+-----------+-----------+-----+------+--------+---------------+
+|        1|     Laptop|Electronics|50000|     1|       2|         100000|
+|        2| Smartphone|Electronics|30000|     6|       2|          60000|
++---------+-----------+-----------+-----+------+--------+---------------+
+
+
+
+

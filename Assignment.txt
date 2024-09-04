@@ -1,0 +1,181 @@
+- EXERCISES (22.08.2024)
+
+-- Query 1
+Select Customers, SUM(Price) AS TotalAmount from Products group by Customers;
+
+-- Query 2
+Select Customers, SUM(Price) AS TotalAmount from Products group by Customers having SUM(Price) > 1000;
+
+-- Query 3
+Select Category, COUNT(ProductId) As NumofProducts from Products Group By Category Having count(ProductId) > 5;
+
+-- Query 4
+Select category, COUNT(ProductId) AS TotalProducts from Products Group by category; 
+
+-- Query 5
+Select p.Customers, p.ProductId, SUM(o.Quantity*p.Price) AS TotalSales
+From Products p
+JOIN Orders o ON p.ProductId = o.ProductId
+Group By p.Customers, p.ProductId;
+
+-- Stored Procedure with Insert Operation
+CREATE PROCEDURE InsertCustomer
+    @CustomerID INT,
+    @CustomerName VARCHAR(100),
+    @BirthDate DATE
+AS
+BEGIN
+    INSERT INTO Customers (CustomerID, CustomerName, BirthDate)
+    VALUES (@CustomerID, @CustomerName, @BirthDate);
+END;
+
+-- Stored Procedure with Update Operation
+CREATE PROCEDURE UpdateCustomer
+    @CustomerID INT,
+    @CustomerName VARCHAR(100),
+    @BirthDate DATE
+AS
+BEGIN
+    UPDATE Customers
+    SET CustomerName = @CustomerName,
+        BirthDate = @BirthDate
+    WHERE CustomerID = @CustomerID;
+END;
+
+-- Stored Procedure with Delete Operation
+CREATE PROCEDURE DeleteCustomer
+    @CustomerID INT
+AS
+BEGIN
+    DELETE FROM Customers
+    WHERE CustomerID = @CustomerID;
+END;
+
+-- HANDS ON EXERCISES:
+
+Exercise 1: Filtering Data using SQL Queries
+
+SELECT * FROM Products WHERE category = 'Electronics' AND Price > 500;
+
+Exercise 2: Total Aggregations using SQL Queries
+
+SELECT SUM(Quantity) AS TotalQuantity from Orders;
+
+Exercise 3: Group By Aggregations using SQL Queries
+
+SELECT p.ProductName, p.ProductId, SUM(o.Quantity*p.Price) AS TotalRevenue 
+FROM Orders o
+JOIN Products p ON o.ProductId = p.ProductId
+GROUP BY p.ProductId, p.ProductName;
+
+Exercise 4: Order of Execution of SQL Queries
+SELECT 
+    Category, 
+    COUNT(ProductId) AS ProductCount,
+    AVG(Price) AS AveragePrice
+FROM 
+    Products
+WHERE 
+    Price > 100
+GROUP BY 
+    Category
+HAVING 
+    COUNT(ProductId) > 0
+ORDER BY 
+    AveragePrice;
+
+Exercise 5: Rules and Restrictions to Group and Filter Data in SQL Queries
+SELECT 
+    ProductId, 
+    ProductName, 
+    Category, 
+    SUM(Price) AS TotalPrice
+FROM 
+    Products
+GROUP BY 
+    ProductId, 
+    ProductName, 
+    Category;
+
+ Exercise 6: Filter Data based on Aggregated Results using Group By and Having
+SELECT 
+    CustomerId,
+    COUNT(OrderID) AS OrderCount
+FROM 
+    Orders
+GROUP BY 
+    CustomerId
+HAVING 
+    COUNT(OrderID) > 5;
+
+-- STORED PROCEDURES
+
+-- Stored Procedure 1: Basic Stored Procedure
+CREATE PROCEDURE GetAllCustomers
+AS 
+BEGIN
+    SELECT * FROM Customers;
+END;
+
+-- Stored Procedure 2: Stored Procedure with Input Parameter
+CREATE PROCEDURE GetOrderDetailsByOrderID
+    @OrderID INT
+AS
+BEGIN
+    SELECT * FROM Orders
+    WHERE OrderID = @OrderID;
+END;
+
+* Stored Procedure 3: Stored Procedure with Multiple Input Parameters
+CREATE PROCEDURE GetProductsByCategoryAndPrice
+    @Category VARCHAR(50),
+    @MinPrice DECIMAL(10,2)
+AS
+BEGIN
+    SELECT * FROM Products
+    WHERE Category = @Category
+    AND Price >= @MinPrice;
+END;
+
+-- Stored Procedure 4: Stored Procedure with Insert Operation
+CREATE PROCEDURE InsertNewProduct
+    @ProductName VARCHAR(100),
+    @Category VARCHAR(100),
+    @Price DECIMAL(10, 2),
+    @StockQuantity INT
+AS
+BEGIN
+    INSERT INTO Products (ProductName, Category, Price, StockQuantity)
+    VALUES (@ProductName, @Category, @Price, @StockQuantity);
+END;
+
+* Stored Procedure 5: Stored Procedure with Update Operation
+CREATE PROCEDURE UpdateCustomerEmail
+    @CustomerID INT,
+    @NewEmail VARCHAR(25)
+AS
+BEGIN
+    UPDATE Customers
+    SET Email = @NewEmail
+    WHERE CustomerID = @CustomerID;
+END;
+
+* Stored Procedure 6: Stored Procedure with Delete Operation
+CREATE PROCEDURE DeleteOrderByID
+    @OrderID INT
+AS
+BEGIN
+    DELETE FROM Orders
+    WHERE OrderID = @OrderID;
+END;
+
+* Stored Procedure 7: Stored Procedure with Output Parameter
+CREATE PROCEDURE GetTotalProductsInCategory
+    @Category VARCHAR(100),               
+    @TotalProducts INT OUTPUT              
+AS
+BEGIN
+    SELECT @TotalProducts = COUNT(*)
+    FROM Products
+    WHERE Category = @Category;
+END;

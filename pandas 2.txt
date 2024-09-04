@@ -1,0 +1,52 @@
+Ex 5:
+1.      import pandas as pd
+data = {
+    "Name": ["Amit", "Neha", "Raj", "Priya"],
+    "Age": [28, None, 35, 29],
+    "City": ["Delhi", "Mumbai", None, "Chennai"]
+}
+df = pd.DataFrame(data)
+
+2.      avg_age = df["Age"].mean()
+df["Age"].fillna(avg_age, inplace=True)
+print(df)
+
+ 3.      df_cleaned = df.dropna()
+print(df_cleaned)
+ 
+Ex 6:
+1.      df["Salary"] = [50000, 60000, 70000, 65000]
+print(df)
+ 
+2.      df = df.drop(columns=["City"])
+print(df)
+ 
+Ex 7:
+1.      df_sorted_by_age = df.sort_values(by="Age")
+print(df_sorted_by_age)
+ 
+2.      df["City"] = ["Delhi", "Mumbai", "Chennai", "Bangalore"]  df_sorted_by_city_age = df.sort_values(by=["City", "Age"], ascending=[True, False])
+print(_sorted_by_city_age)
+ 
+Ex 8:
+1.      avg_age_by_city = df.groupby("City")["Age"].mean()
+print(avg_age_by_city)
+ 
+2.      count_by_city_age = df.groupby(["City", "Age"]).size()
+print(count_by_city_age)
+Ex 9:
+ 
+1.      df1 = pd.DataFrame({
+	"Name": ["Amit", "Neha", "Raj"],
+	"Department": ["HR", "IT", "Finance"]
+}) 
+df2 = pd.DataFrame({
+	"Name": ["Neha", "Raj", "Priya"],
+	"Salary": [60000, 70000, 65000]
+})
+ 
+2.      merged_inner = pd.merge(df1, df2, on="Name", how="inner")
+print(merged_inner)
+ 
+3.       merged_left = pd.merge(df1, df2, on="Name", how="left")
+print(merged_left)
