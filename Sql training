@@ -1,0 +1,609 @@
+ 
+ use product_value
+ 
+ CREATE TABLE Orders (
+    order_id INT PRIMARY KEY,
+    product_id INT,
+    quantity INT,
+    order_date DATE)
+    
+CREATE TABLE Products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100),
+    price int)
+
+INSERT INTO Orders (order_id, product_id, quantity, order_date) VALUES
+(1, 1, 2, '2024-08-01'),
+(2, 2, 1, '2024-08-02'),
+(3, 3, 3, '2024-08-03'),
+(4, 1, 1, '2014-03-04'),
+(5, 4, 4, '2024-08-05'),
+(6, 5, 2, '2014-03-06');
+
+INSERT INTO Products (product_id, product_name, price) VALUES
+(1, 'Laptop', 88.00),
+(2, 'Smartphone', 500.00),
+(3, 'Tablet', 300.00),
+(4, 'Headphones', 50.00),
+(5, 'Monitor', 150.00);
+
+Select product_name,price,quantity,order_date 
+From Products Inner Join Orders
+On Products.product_id=Orders.product_id
+
+Select product_name,price,quantity,order_date 
+From Products Left Join Orders
+On Products.product_id=Orders.product_id
+
+Select product_name,price,quantity,order_date 
+From Products Right Join Orders
+On Products.product_id=Orders.product_id
+
+Select p.product_name,p.price,o.quantity,o.order_date 
+From Products p Inner Join Orders o
+On p.product_id=o.product_id
+
+Select product_name,price,quantity,order_date 
+From Products Left Join Orders
+On Products.product_id=Orders.product_id
+
+Select product_name,price,quantity,order_date 
+From Products Right Join Orders
+On Products.product_id=Orders.product_id
+
+Select product_name,price,quantity,order_date 
+From Products full outer Join Orders
+On Products.product_id=Orders.product_id
+
+-- Grouping for multiple columns 
+select p.product_name,o.order_date,sum(o.quantity) as Total_quantity from orders o join products p on o.product_id=p.product_id
+group by grouping SETS(o.product_name),(o.order_date));
+
+-- Subquery
+select o.order_id,o.product_id ,(select p.product_name from products p where p.product_id=o.product_id) as Product_name from orders o
+
+-- Exits
+select u.user_id,u.user_name from users where Exists (select 1 from orders o where o.user_id = u.user_id);
+
+-- Any
+select p.product_name,p.price from products p where p.price > any (select price from products where product_name like 'smart%')
+
+-- All
+select p.product_name,p.price from products p where p.price > All (select price from products where product_name like 'smartphone%')
+
+-- Nested subquery
+select user_id,user_name from users 
+where user_id in (select user_id from orders where product_id in 
+(select product_id from products where price > 1000))
+
+-- Union
+select 'price of product diff' as type,product_name  from products where price >500
+union
+select 'value'as typ ,product_name from products where product_name like 'smart%'
+
+-- Intersect
+select product_name  from products where price >500
+Intersect
+select product_name from products where product_name like 'lap%'
+
+-- Except
+select product_name  from products where price >500
+Except
+select product_name from products where product_name like 'smart%'
+
+-- Case
+select product_id,product_name,
+Case
+when price >300 Then 'Price is high'
+when price <=300 Then 'price is low'
+End as 'Price Range'
+From products
+
+-- IFNULL
+select name,IFNULL(departmentid,0) departID from tblemployee
+select name,IFNULL(departmentid,'NO Value') departID from tblemployee
+select name,COALESCE(departmentid,0) departID from tblemployee  -- it will select the first not null value
+
+-- Current user
+select current_user
+
+-- If
+select product_name ,if(price>300,'high','low') from products
+
+-- Functions
+select product_name ,Upper(product_name) As uppercase_of_productname from products 
+select product_name ,lower(product_name) As lowercase_of_productname from products
+select product_name ,Substring(product_name,1,3) As trimmed_from_1to3 from products
+select product_name,charindex('a',product_name) as First_occurance_of_letter from products
+select product_name ,LEN(product_name) As length_of_productname from products
+select product_name ,Ltrim(product_name) As remove_left_space from products
+select product_name ,Rtrim(product_name) As remove_right_space from products
+select product_name ,Ltrim(Rtrim(product_name)) As remove_left_space_and_right_space from products
+select product_name ,Replace(product_name,'phone','device') As replaced_value from products
+select product_name ,Concat(product_name,'-',price) As concated_value from products
+select product_name ,Left(product_name,3) As first_three_characters from products
+select product_name ,Right(product_name,3) As last_three_characters from products
+select product_name ,Reverse(product_name) As reversed_value from products
+select product_name ,Format(product_name,'N2') As formated_value from products
+select product_name ,REPLICATE(product_name,3) As repeatedName from products
+
+
+-- Dates
+select GETDATE() As Currentdate,
+DATEADD(Day,10,GETDATE()) AS Future_Date
+
+select DATEADD(year,-1,GETDATE()) AS Date_minus_oneyear
+
+Select DATEDIFF(day,2024-01-12,CURRENTDATE()) as daysdifference
+
+select Format('2024-01-12','MMMM-dd-yyyy') as formateddate
+
+Select DATEDIFF(month,'2024-12-03','2024-08-20') as monthdifference
+
+desc orders
+
+-- Math Functions
+select product_name, Round(price,2) from products
+
+select product_name, Ceiling(price) from products
+
+select product_name, Floor(price) from products
+
+select product_name, price, price % 5 as Modulo_price from products
+
+select product_name, SQRT(price) from products
+
+select product_name, Power(price,3) from products
+
+select ABS(MAX(price)-MIN(price)) as Pricediffference from products
+
+select product_name, price,ROUND(RAND() * 100,2) as RandomValues from products
+
+select product_name, price,LOG(price) as logvalues from products
+
+
+-- STORED PROCEDURES
+CREATE PROCEDURE DEMO
+AS
+BEGIN
+    SELECT * FROM products
+END 
+EXEC demo
+
+CREATE PROCEDURE GetProductById
+ @ProductID INT
+AS
+BEGIN
+    SELECT * FROM products
+    WHERE Product_id = @ProductID
+END ;
+EXEC GetProductById @ProductID=1;
+
+CREATE PROCEDURE GetProductByCategoryandPrice
+ @product_name VARCHAR(20),
+ @price DECIMAL(10,2)
+AS
+BEGIN
+    SELECT * FROM products
+    WHERE product_name = @category AND Price > @price
+END ;
+EXEC GetProductByCategoryandPrice @product_name = 'smartphone', @price='100' ;
+--------------------------------------------------------------------------------------------------
+
+CREATE PROCEDURE ProcessOrder
+    @ProductID INT,
+    @Quantity INT,
+    @OrderDate DATE
+AS
+BEGIN
+    BEGIN TRANSACTION;
+
+    BEGIN TRY
+        -- Insert the order
+        INSERT INTO Orders (ProductID, Quantity, OrderDate)
+        VALUES (@ProductID, @Quantity, @OrderDate);
+
+        -- Update the product stock
+        UPDATE Products
+        SET StockQuantity = StockQuantity - @Quantity
+        WHERE ProductID = @ProductID;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        
+        -- Handle errors, such as logging or rethrowing
+        -- Example of rethrowing the error
+        THROW;
+    END CATCH;
+END;
+ ----------------------------------------------------------------------------------------------------
+CREATE PROCEDURE AdjustStock
+    @orderID INT,
+    @Adjustment INT
+AS
+BEGIN
+    IF @Adjustment > 0
+    BEGIN
+        -- Add to stock
+        UPDATE orders
+        SET Quantity = Quantity + @Adjustment
+        WHERE order_ID = @orderID;
+    END
+    ELSE IF @Adjustment < 0
+    BEGIN
+        -- Subtract from stock
+        UPDATE orders
+        SET Quantity = Quantity + @Adjustment
+        WHERE order_ID = @orderID;
+    END
+END;
+
+EXEC AdjustStock @orderID = 1, @Adjustment = 2;  -- Increase stock by 2
+EXEC AdjustStock @orderID = 1, @Adjustment = -1;  -- Decrease stock by 1
+----------------------------------------------------------------------------------------------------------------------
+use company
+create procedure a
+as 
+begin
+select * from customers
+select * from orders
+select * from products
+end
+
+exec a
+ ----------------------------------------------------------------------------------------------------------------------
+
+
+use demo
+
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    FirstName VARCHAR(50),
+    LastName VARCHAR(50),
+    Email VARCHAR(100),
+    PhoneNumber VARCHAR(15)
+);
+
+INSERT INTO Customers (CustomerID, FirstName, LastName, Email, PhoneNumber) VALUES
+(1, 'amit', 'sharma', 'amit.sharma@example.com', '9876543210'),
+(2, 'pnya', 'mehta', 'priya.mehta@example.com', '8765432109'),
+(3, 'rohit', 'kumar', 'rohit.kumar@example.com', '7654321098'),
+(4, 'neha', 'verma', 'neha.verma@example.com', '6543210987'),
+(5, 'siddharth', 'singh', 'siddharth.singh@example.com', '5432109876'),
+(6, 'asha', 'rao', 'asha.rao@example.com', '4321098765');
+
+SELECT * FROM customers
+------------------------------------------------------------------------------------------------------------
+
+-- MANIPULATING DATA
+
+UPDATE Customers
+ SET FirstName = RTRIM(LTRIM(LOWER(FirstName))),
+     LastName = RTRIM(LTRIM(LOWER(LastName)))
+
+-- pattern matching
+
+SELECT * FROM customers
+ WHERE firstname like '%a'
+
+SELECT * FROM customers
+ where phonenumber like '[0-9][0-9][0-9]-[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]'
+
+SELECT * FROM customers
+WHERE LastName LIKE '_____'  -- IT WILL TAKE LAST NAME WITH 5 CHARACTERS
+
+
+-- partioning data
+
+SELECT CustomerID,OrderDate,TotalAmount
+	SUM(TotalAmount) OVER (PARTITION BY CustomerID ORDER BY Orderdate ) AS RunningTotal
+FROM Orders;
+
+
+-- RANKING FUNCTION
+
+SELECT CustomerID,OrderAmount,
+	RANK() OVER (ORDER BY OrderAmount DESC)
+FROM
+	(SELECT CustomerID,SUM(OrderAmount) 
+	FROM Orders
+	GROUP BY CustomerId) 0
+select * from orders
+--------------------------------------------------------------------------------------
+
+CREATE TABLE Employees (
+
+    EmployeeID INT PRIMARY KEY IDENTITY(1,1),
+
+    EmployeeName VARCHAR(100),
+
+    ManagerID INT NULL
+
+);
+
+
+INSERT INTO Employees (EmployeeName, ManagerID)
+
+VALUES 
+
+('Amit Sharma', NULL),  -- Top manager
+
+('Priya Mehta', 1),     -- Reports to Amit
+
+('Rohit Kumar', 1),     -- Reports to Amit
+
+('Neha Verma', 2),      -- Reports to Priya
+
+('Siddharth Singh', 2), -- Reports to Priya
+
+('Asha Rao', 3);        -- Reports to Rohit
+
+
+INSERT INTO Employees (EmployeeName, ManagerID)
+
+VALUES 
+
+('Vikram Gupta', 4),  -- Reports to Neha
+
+('Rajesh Patel', 5);  -- Reports to Siddharth
+
+select * from employees
+---------------------------------------------------------------------------------------------------------------------------
+
+-- Recursion
+
+WITH RecursiveEmployeeCTE AS(                      -- CTE -> Common Table Expression
+	SELECT EmployeeID,ManagerID,EmployeeName
+	FROM Employees
+	WHERE ManagerId IS NULL
+	UNION ALL
+	SELECT e.EmployeeID,e.ManagerID,e.EmployeeName
+	FROM Employees e
+	INNER JOIN RecursiveEmployeeCTE r ON e.ManagerID = r.EmployeeID )
+SELECT * FROM RecursiveEmployeeCTE
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE Sales (
+
+    SaleID INT PRIMARY KEY,
+
+    ProductID INT,
+
+    Category VARCHAR(50),
+
+    Amount DECIMAL(10, 2),
+
+    SaleDate DATE
+
+);
+ 
+INSERT INTO Sales (SaleID, ProductID, Category, Amount, SaleDate) 
+
+VALUES 
+
+(1, 101, 'Electronics', 1500.00, '2024-01-15'),
+
+(2, 102, 'Furniture', 800.00, '2024-01-16'),
+
+(3, 103, 'Electronics', 2000.00, '2024-01-17'),
+
+(4, 104, 'Electronics', 1200.00, '2024-02-01'),
+
+(5, 105, 'Furniture', 900.00, '2024-02-03');
+
+INSERT INTO SALES(SaleID, ProductID, Amount) VALUES(6,106,1000)
+
+select * from sales
+-------------------------------------------------------------------------------------------------------------------------------------
+
+-- ROLLUP
+
+SELECT Category,SUM(Amount) AS TotalSales
+FROM Sales
+GROUP BY ROLLUP(Category);
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    OrderAmount DECIMAL(10, 2),
+    OrderDate DATE
+);
+ 
+INSERT INTO Orders (OrderID, CustomerID, OrderAmount, OrderDate)
+VALUES 
+(1, 1, 500.00, '2024-01-15'),
+(2, 2, 700.00, '2024-01-16'),
+(3, 1, 300.00, '2024-01-17'),
+(4, 3, 1200.00, '2024-02-01'),
+(5, 2, 900.00, '2024-02-03');
+
+SELECT * FROM ORDERS
+
+-------------------------------------------------------------------------------------------------------------------------
+
+-- CORELATED SUBQUERY
+
+SELECT DISTINCT o1.CustomerId
+FROM Orders o1
+WHERE (
+		SELECT COUNT(*)
+		FROM Orders o2
+		WHERE o2.CustomerId = o1.CustomerID ) > 1
+
+------------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE ProductSales (
+    SaleID INT PRIMARY KEY,
+    ProductID INT,
+    Amount DECIMAL(10, 2),
+    SaleDate DATE
+);
+ 
+INSERT INTO ProductSales (SaleID, ProductID, Amount, SaleDate)
+VALUES 
+(1, 101, 1500.00, '2024-01-15'),
+(2, 102, 800.00, '2024-01-16'),
+(3, 103, 2000.00, '2024-01-17'),
+(4, 104, 1200.00, '2024-02-01'),
+(5, 105, 900.00, '2024-02-03');
+
+select * from productsales
+------------------------------------------------------------------------------------------------------------------------------------------
+-- VIEW
+
+CREATE VIEW TotalSalesByProduct
+WITH SCHEMABINDING AS
+SELECT ProductID, SUM(Amount) AS TotalSales
+FROM dbo.ProductSales
+GROUP BY ProductID;
+
+SELECT * FROM TotalSalesByProduct
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- EXAMPLES 
+
+1. Filter and Aggregate on Join Results using SQL**
+- Task: Join the `Orders` and `Customers` tables to find the total order amount per customer and filter out customers who have spent less than $1,000.
+
+SELECT c.CustomerID,c.firstName,
+SUM(o.OrderAmount) AS TotalSpent
+FROM Orders o
+JOIN Customers c ON o.CustomerID = c.CustomerID
+GROUP BY c.CustomerID,c.firstName
+HAVING SUM(o.OrderAmount) >= 1000;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+2. Cumulative Aggregations and Ranking in SQL Queries**
+- Task: Create a cumulative sum of the `OrderAmount` for each customer to track the running total of how much each customer has spent.
+
+SELECT c.CustomerID, c.FirstName, c.LastName, o.OrderAmount,SUM(o.OrderAmount) 
+OVER (PARTITION BY c.CustomerID ORDER BY o.OrderDate) AS RunningTotal
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+ORDER BY c.CustomerID, o.OrderDate;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. OVER and PARTITION BY Clause in SQL Queries**
+- Task: Rank the customers based on the total amount they have spent, partitioned by city.
+
+WITH CustomerRank AS (
+    SELECT c.CustomerID,c.FirstName,c.City,
+    SUM(o.OrderAmount) AS TotalSpent
+    FROM Orders o JOIN Customers c 
+	ON o.CustomerID = c.CustomerID
+    GROUP BY c.CustomerID, c.FirstName, c.City)
+SELECT CustomerID,FirstName,City,TotalSpent,
+    RANK() OVER (PARTITION BY City ORDER BY TotalSpent DESC) AS CityRank
+FROM CustomerRank;
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+4. Total Aggregation using OVER and PARTITION BY in SQL Queries**
+- Task: Calculate the total amount of all orders (overall total) and the percentage each customers total spending contributes to the overall total.
+
+WITH CustomerTotals AS (
+    SELECT c.CustomerID, c.FirstName, c.LastName, SUM(o.OrderAmount) AS TotalSpent
+    FROM Customers c
+    JOIN Orders o ON c.CustomerID = o.CustomerID
+    GROUP BY c.CustomerID, c.FirstName, c.LastName)
+SELECT CustomerID, FirstName, LastName, TotalSpent,
+       SUM(TotalSpent) OVER () AS Overall_Total,
+       ROUND((TotalSpent / SUM(TotalSpent) OVER ()) * 100, 2) AS Percentage_Of_Total
+FROM CustomerTotals;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+5. Ranking in SQL**
+- Task: Rank all customers based on the total amount they have spent, without partitioning.
+
+SELECT c.CustomerID, c.FirstName, c.LastName, SUM(o.OrderAmount) AS TotalSpent,
+       RANK() OVER (ORDER BY SUM(o.OrderAmount) DESC) AS OverallRank
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY c.CustomerID, c.FirstName, c.LastName;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Here are additional tasks that build on the concepts of filtering, aggregating, ranking, and window functions in SQL:
+
+*6. Task: Calculate the Average Order Amount per City**
+- Task: Write a query that joins the `Orders` and `Customers` tables, calculates the average order amount for each city, and orders the results by the average amount in descending order.
+
+SELECT c.City, AVG(o.OrderAmount) AS AverageOrderAmount
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY c.City
+ORDER BY AverageOrderAmount DESC;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+7. Task: Find Top N Customers by Total Spending**
+- Task: Write a query to find the top 3 customers who have spent the most, using `ORDER BY` and `LIMIT`.
+
+SELECT TOP 3 c.CustomerID, c.FirstName, c.LastName, SUM(o.OrderAmount) AS TotalSpent
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY c.CustomerID, c.FirstName, c.LastName
+ORDER BY TotalSpent DESC;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+8. Task: Calculate Yearly Order Totals**
+- Task: Write a query that groups orders by year (using `OrderDate`), calculates the total amount of orders for each year, and orders the results by year.
+
+SELECT YEAR(o.OrderDate) AS OrderYear, SUM(o.OrderAmount) AS YearlyTotal
+FROM Orders o
+GROUP BY YEAR(o.OrderDate)
+ORDER BY OrderYear;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+9. Task: Calculate the Rank of Customers by Total Order Amount**
+- Task: Write a query that ranks customers by their total spending, but only for customers located in "Mumbai". The rank should reset for each customer in "Mumbai".
+
+SELECT c.CustomerID, c.FirstName, c.LastName, SUM(o.OrderAmount) AS TotalSpent, RANK() OVER (PARTITION BY c.City ORDER BY SUM(o.OrderAmount) DESC) AS RankInMumbai
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+WHERE c.City = 'Mumbai'
+GROUP BY c.CustomerID, c.FirstName, c.LastName, c.City;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+10. Task: Compare Each Customer's Total Order to the Average Order Amount**
+- Task: Write a query that calculates each customer's total order amount and compares it to the average order amount for all customers.
+
+WITH CustomerTotals AS (
+    SELECT c.CustomerID, c.FirstName, c.LastName, SUM(o.OrderAmount) AS TotalSpent
+    FROM Customers c
+    JOIN Orders o ON c.CustomerID = o.CustomerID
+    GROUP BY c.CustomerID, c.FirstName, c.LastName
+),
+AverageTotal AS (
+    SELECT AVG(TotalSpent) AS AverageOrderAmount
+    FROM CustomerTotals
+)
+
+SELECT ct.CustomerID, ct.FirstName, ct.LastName, ct.TotalSpent, at.AverageOrderAmount,
+       CASE
+           WHEN ct.TotalSpent > at.AverageOrderAmount THEN 'Above Average'
+           WHEN ct.TotalSpent < at.AverageOrderAmount THEN 'Below Average'
+           ELSE 'Average'
+       END AS Comparison
+FROM CustomerTotals ct, AverageTotal at;
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
