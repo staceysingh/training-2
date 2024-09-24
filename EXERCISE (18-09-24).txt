@@ -1,0 +1,96 @@
+EXERCISE (18-09-24)
+
+TASK 1
+Set up a Unity Catalog metastore - This will created in databricks catalog.
+
+TASK 2
+CREATE CATALOG marketing;
+CREATE CATALOG engineering;
+CREATE CATALOG operations;
+
+TASK 3
+-- Marketing
+CREATE SCHEMA marketing_data.ads_data;
+CREATE SCHEMA marketing_data.customer_data;
+
+-- Engineering
+CREATE SCHEMA engineering_data.projects;
+CREATE SCHEMA engineering_data.development_data;
+
+-- Operations
+CREATE SCHEMA operations_data.logistics;
+CREATE SCHEMA operations_data.supply_chain;
+
+TASK 4&5:
+-- Marketing ads_data
+CREATE TABLE marketing_data.ads_data.ads (
+ad_id INT,
+impressions INT,
+clicks INT,
+cost_per_click FLOAT
+);
+
+INSERT INTO marketing_data.ads_data.ads
+
+VALUES
+(1, 1000, 50, 0.75),
+(2, 1500, 75, 0.60),
+(3, 2000, 90, 0.85),
+(4, 2500, 120, 0.80),
+(5, 3000, 140, 0.90),
+(6, 3500, 160, 0.70);
+
+-- Engineering projects_data
+CREATE TABLE engineering_data.projects.projects_data (
+project_id INT,
+project_name STRING,
+start_date DATE,
+end_date DATE
+);
+
+INSERT INTO engineering_data.projects.projects_data
+VALUES
+(101, 'Project Alpha', '2024-01-01', '2024-06-01'),
+(102, 'Project Beta', '2024-02-01', '2024-07-01'),
+(103, 'Project Gamma', '2024-03-01', '2024-08-01'),
+(104, 'Project Delta', '2024-04-01', '2024-09-15'),
+(105, 'Project Epsilon', '2024-05-01', '2024-10-31'),
+(106, 'Project Zeta', '2024-06-01', NULL);
+
+-- Operations logistics_data
+CREATE TABLE operations_data.logistics.logistics_data(
+shipment_id INT,
+origin STRING,
+destination STRING,
+status STRING
+
+);
+
+INSERT INTO operations_data.logistics.logistics_data
+VALUES
+(1001, 'New York', 'Los Angeles', 'In Transit'),
+(1002, 'Chicago', 'Houston', 'Delivered'),
+(1003, 'San Francisco', 'Seattle', 'Pending'),
+(1004, 'Atlanta', 'Miami', 'Shipped'),
+(1005, 'Denver', 'Portland', 'Out for Delivery'),
+(1006, 'Las Vegas', 'Phoenix', 'Delayed');
+
+TASK 6:
+GRANT USAGE ON CATALOG marketing TO `marketing_group`;
+GRANT SELECT ON SCHEMA marketing_data.ads_data TO `marketing_group`;
+GRANT SELECT ON TABLE marketing_data.ads_data.ads TO `marketing_group`;
+
+TASK 7:
+GRANT SELECT ON TABLE marketing_data.ads_data.ads TO `abcd@example.com`;
+REVOKE SELECT ON TABLE engineering_data.projects.projects_data FROM `efgh@example.com`;
+GRANT ALL PRIVILEGES ON TABLE operations_data.logistics.logistics_data TO `ijkl@example.com`;
+
+TASK 8:
+Navigate to the databricks UI to Catalog Explorer to check the lineage of the tables we created
+
+TASK 9:
+In the Admin Console, we can view the Audit logs for the operations performed.
+
+TASK 10:
+DESCRIBE TABLE marketing_data.ads_data.ads;
+COMMENT ON TABLE marketing_data.ads_data.ads IS 'Stores ad data for marketing department';

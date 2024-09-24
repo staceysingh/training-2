@@ -1,0 +1,102 @@
+Delta Assignment
+
+
+#Move the file from workspace to DBFS
+dbutils.fs.cp("file:/Workspace/Shared/sales1_data.csv","dbfs:/FileStore/sales1_data.csv")
+
+#Move the file from workspace to DBFS
+dbutils.fs.cp("file:/Workspace/Shared/new_sales_data.csv","dbfs:/FileStore/new_sales_data.csv")
+
+1.CREATE DELTA TABLES USING 3 METHODS
+
+#1.Load the sales_data.csv file into a DataFrame.
+sales_df = spark.read.csv("dbfs:/FileStore/sales1_data.csv", header=True, inferSchema=True)
+sales_df.show()
+
+
+#2.Write the DataFrame as a Delta Table.
+sales_df.write.format("delta").mode("overwrite").save("dbfs:/FileStore/sales1_delta")
+
+#Load the customer_data.json to Dataframe
+dbutils.fs.cp("file:/Workspace/Shared/customer_data.json","dbfs:/Filestore/customer_data.json")
+
+
+#3.Load the customer_data.json file into a DataFrame.
+customer_df=spark.read.format("json").option("multiline","true").load("dbfs:/Filestore/customer_data.json")
+customer_df.show()
+
+
+#4. Write the DataFrame as a Delta Table.
+customer_df.write.format("delta").mode("overwrite").save("dbfs:/FileStore/customer_delta")
+
+
+#5.Convert an existing Parquet file into a Delta Table (For demonstration, use a
+#Parquet file available in your workspace).
+
+df.write.format("parquet").mode("overwrite").save("/FileStore/customer_data.json")
+parquet_df = spark.read.format("parquet").load("/FileStore/customer_data.json")
+parquet_df.write.format("delta").save("/delta/customer_data_parquet_to_delta")
+
+
+2.DATA MANAGEMENT
+
+#1.Load the new_sales_data.csv file into a DataFrame.
+new_sales_df=spark.read.format("csv").option("header","true").load("dbfs:/FileStore/new_sales_data.csv")
+
+#2.Write the new DataFrame as a Delta Table.
+new_sales_df.write.format("delta").mode("overwrite").save("dbfs:/FileStore/new_sales_delta")
+
+#3.Perform a MERGE INTO operation to update and insert records into the existing Delta table.
+from delta.tables import DeltaTable
+
+# Load the Delta Table
+sales_delta = DeltaTable.forPath(spark, "/delta/sales_data")
+
+# Load new sales data
+new_sales_df = spark.read.format("csv").option("header", "true").load("/FileStore/new_sales_data.csv")
+
+# Perform the MERGE INTO operation
+sales_delta.alias("old").merge(
+new_sales_df.alias("new"),
+"old.OrderID = new.OrderID").whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()
+
+# Create a new Delta Table
+spark.sql("CREATE TABLE IF NOT EXISTS sales_data_delta USING DELTA LOCATION '/delta/sales_data'")
+#diaplay table
+spark.sql("""
+SELECT * FROM sales_data_delta
+""")
+
+3. OPTIMIZE DELTA TABLE
+
+#1. Apply the OPTIMIZE command on the Delta Table and use Z-Ordering on an appropriate column.
+
+spark.sql("""
+OPTIMIZE delta.`/delta/sales_data` ZORDER BY (CustomerID)
+""")
+
+.4. ADVANCED FEATURES
+
+#1. Use DESCRIBE HISTORY to inspect the history of changes for a Delta Table.
+spark.sql("""
+DESCRIBE HISTORY delta.`/delta/sales_data`
+""")
+
+
+#2. Use VACUUM to remove old files from the Delta Table.
+
+spark.sql("""
+VACUUM delta.`/delta/sales_data` RETAIN 168 HOURS
+""")
+
+5. HANDS ON EXERCISES
+
+#1. Using Delta Lake for Data Versioning:
+#Query historical versions of the Delta Table using Time Travel.
+spark.sql("""
+SELECT * FROM delta.`/delta/sales_data` VERSION AS OF 1
+""")
+
+#2. Building a Reliable Data Lake with Delta Lake:
+#Implement schema enforcement and handle data updates with Delta Lake.
+df.write.format("delta").mode("append").option("mergeSchema", "true").save("/delta/sales_data")

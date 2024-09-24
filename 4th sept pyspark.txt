@@ -1,0 +1,46 @@
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+# Initialize a Spark session
+spark = SparkSession.builder \
+    .appName("Employee Data Analysis") \
+    .getOrCreate()
+
+# Sample employee data
+data = [
+    (1, 'Arjun', 'IT', 75000),
+    (2, 'Vijay', 'Finance', 85000),
+    (3, 'Shalini', 'IT', 90000),
+    (4, 'Sneha', 'HR', 50000),
+    (5, 'Rahul', 'Finance', 60000),
+    (6, 'Amit', 'IT', 55000)
+]
+
+# Define schema (columns)
+columns = ['EmployeeID', 'EmployeeName', 'Department', 'Salary']
+
+# Create DataFrame
+employee_df = spark.createDataFrame(data, columns)
+
+# Show the DataFrame
+employee_df.show()
+
+
+
+# Task 1: Filter employees with a salary greater than 60,000
+filtered_employees = employee_df.filter(col("Salary") > 60000)
+filtered_employees.show()
+
+
+# Task 2: Calculate the average salary by department
+avg_salary_by_dept = employee_df.groupBy("Department").agg(avg("Salary").alias("Average_Salary"))
+avg_salary_by_dept.show()
+
+
+# Task 3: Sort employees by salary in descending order
+sorted_employees = employee_df.orderBy(col("Salary").desc())
+sorted_employees.show()
+
+# Task 4: Add a new column 'Bonus' which is 10% of the employee's salary
+employee_with_bonus = employee_df.withColumn("Bonus", col("Salary") * 0.10)
+employee_with_bonus.show()

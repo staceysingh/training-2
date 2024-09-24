@@ -1,0 +1,56 @@
+!pip install pyspark
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+
+spark = SparkSession.builder.appName('test').getOrCreate()
+csv_file="/content/Airline.csv"
+df=spark.read.csv(csv_file,header=True,inferSchema=True)
+df.show()
+
+# 1. Find the Total Distance Traveled by Each Airline
+# Group the data by airline and calculate the total distance traveled for
+# each airline.
+df.groupBy("airline").agg(sum("distance").alias("TotalDistance")).show()
+
+# 2. Filter Flights with Delays Greater than 30 Minutes
+# Filter the dataset to show only flights where the delay was greater than
+# 30 minutes.
+df.filter(col("delay_min") > 30).show()
+
+# 3. Find the Flight with the Longest Distance
+# Identify the flight that covered the longest distance.
+df.orderBy(col("distance").desc()).first()
+
+# 4. Calculate the Average Delay Time for Each Airline
+# Group the data by airline and calculate the average delay time in
+# minutes for each airline.
+df.groupBy("airline").agg(avg("delay_min").alias("AverageDelay")).show()
+
+# 5. Identify Flights That Were Not Delayed
+# Filter the dataset to show only flights with delay_minutes = 0 .
+df.filter(col("delay_min") == 0).show()
+
+# 6. Find the Top 3 Most Frequent Routes
+# Group the data by origin and destination to find the top 3 most
+# frequent flight routes.
+df.groupBy("origin", "destination").count().orderBy(col("count").desc()).limit(3).show()
+
+# 7. Calculate the Total Number of Flights per Day
+# Group the data by date and calculate the total number of flights on
+# each day.
+df.groupBy("date").count().show()
+
+# 8. Find the Airline with the Most Flights
+# Identify the airline that operated the most flights.
+df.groupBy("airline").count().orderBy(col("count").desc()).first()
+
+# 9. Calculate the Average Flight Distance per Day
+# Group the data by date and calculate the average flight distance for
+# each day.
+df.groupBy("date").agg(avg("distance").alias("AverageDistance")).show()
+
+# 10. Create a New Column for On-Time Status
+# Add a new column called on_time that indicates whether a flight was on
+# time ( True if delay_minutes = 0 , otherwise False ).
+df.withColumn("on_time", when(col("delay_min") == 0, True).otherwise(False)).show()

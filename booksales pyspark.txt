@@ -1,0 +1,55 @@
+!pip install pyspark
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark=SparkSession.builder.appName('Book Sales').getOrCreate()
+csv_file='/content/Book_Sales.csv'
+df_books=spark.read.csv(csv_file,header=True,inferSchema=True)
+df_books.show(5)
+
+# 1. Find Total Sales Revenue per Genre
+# Group the data by genre and calculate the total sales revenue for each
+# genre. (Hint: Multiply sale_price by quantity to get total sales for
+# each book.)
+df_books.groupBy('genre').agg(sum(col('sale_price')*col('quantity')).alias('total_sales_revenue')).show()
+# 2. Filter Books Sold in the "Fiction" Genre
+# Filter the dataset to include only books sold in the "Fiction" genre.
+df_books.filter(col('genre')=='Fiction').show()
+# 3. Find the Book with the Highest Sale Price
+# Identify the book with the highest individual sale price.
+df_books.orderBy(col('sale_price').desc()).first()
+# 4. Calculate Total Quantity of Books Sold by Author
+# Group the data by author and calculate the total quantity of books sold
+# for each author.
+df_books.groupBy('author').agg(sum(col('quantity')).alias('total_quantity_sold')).show()
+
+# 5. Identify Sales Transactions Worth More Than $50
+# Filter the sales transactions where the total sales amount (sale_price *
+# quantity) is greater than $50.
+df_books.filter(col('sale_price')*col('quantity')>50).show()
+
+# 6. Find the Average Sale Price per Genre
+# Group the data by genre and calculate the average sale price for books
+# in each genre.
+df_books.groupBy('genre').agg(avg(col('sale_price')).alias('average_sale_price')).show()
+
+# 7. Count the Number of Unique Authors in the Dataset
+# Count how many unique authors are present in the dataset.
+df_count=df_books.select('author').distinct().count()
+print(f"The number of unique Authors {df_count}")
+# 8. Find the Top 3 Best-Selling Books by Quantity
+# Identify the top 3 best-selling books based on the total quantity sold.
+df_books.orderBy(col('quantity').desc()).limit(3).show()
+
+# 9. Calculate Total Sales for Each Month
+# Group the sales data by month and calculate the total sales revenue for
+# each month.
+df_books=df_books.withColumn('month',month(col('date')))
+df_books.groupBy('month').agg(sum(col('sale_price')*col('quantity')).alias('total_sales')).show()
+# 10. Create a New Column for Total Sales Amount
+# Add a new column total_sales that calculates the total sales amount for
+# each transaction ( sale_price * quantity ).
+df_books=df_books.withColumn('total_sales',col('sale_price')*col('quantity'))
+df_books.show()

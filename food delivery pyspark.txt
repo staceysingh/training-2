@@ -1,0 +1,63 @@
+!pip install pyspark
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
+spark=SparkSession.builder.appName('Food Delivery').getOrCreate()
+csv_file="/content/Food.csv"
+df=spark.read.csv(csv_file,header=True,inferSchema=True)
+df.show()
+
+# 1. Calculate Total Revenue per Restaurant
+# Group the data by restaurant_name and calculate the total revenue for
+# each restaurant. (Hint: Multiply price by quantity to get total
+# revenue per order.)
+df_revenue=df.withColumn('total_revenue',col('price')*col('quantity'))
+df_revenue.show()
+# 2. Find the Fastest Delivery
+# Identify the order with the fastest delivery time.
+df_fastest=df.orderBy(col('delivery_time_mins').asc())
+df_fastest.show()
+# 3. Calculate Average Delivery Time per Restaurant
+# Group the data by restaurant_name and calculate the average delivery
+# time for each restaurant.
+df_avg_time=df.groupBy('restaurant_name').agg(avg('delivery_time_mins').alias('avg_delivery_time'))
+df_avg_time.show()
+# 4. Filter Orders for a Specific Customer
+df_customer=df.filter(df.customer_id == 201)
+df_customer.show()
+
+# 5. Find Orders Where Total Amount Spent is Greater Than $20
+# Filter orders where the total amount spent (price * quantity) is greater
+# than $20.
+
+df_total=df.withColumn('total_amount',col('price')*col('quantity'))
+# df_total.show()
+df_total_amount=df_total.filter(df_total.total_amount>20)
+df_total_amount.show()
+# 6. Calculate the Total Quantity of Each Food Item Sold
+# Group the data by food_item and calculate the total quantity of each
+# food item sold.
+df_quantity=df.groupBy('food_item').agg(sum('quantity').alias('total_quantity'))
+df_quantity.show()
+# 7. Find the Top 3 Most Popular Restaurants by Number of Orders
+# Identify the top 3 restaurants with the highest number of orders placed.
+df_popular=df.groupBy('restaurant_name').count().orderBy(col('count').desc()).limit(3)
+df_popular.show()
+
+# 8. Calculate Total Revenue per Day
+# Group the data by order_date and calculate the total revenue for each
+# day.
+total_revenue_per_day = df.groupBy('order_id').agg({'price': 'sum'})
+total_revenue_per_day.show()
+# 9. Find the Longest Delivery Time for Each Restaurant
+# For each restaurant, find the longest delivery time.
+df_longest=df.groupBy('restaurant_name').agg(max('delivery_time_mins').alias('longest_delivery_time'))
+df_longest.show()
+
+# 10. Create a New Column for Total Order Value
+# Add a new column total_order_value that calculates the total value of
+# each order ( price * quantity ).
+df_value=df.withColumn('total_order_value',col('price')*col('quantity'))
+df_value.show()

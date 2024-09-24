@@ -1,0 +1,59 @@
+!pip install pyspark
+
+from pyspark.sql import SparkSession
+from pyspark.sql.window import Window
+from pyspark.sql.functions import col,row_number,rank
+spark=SparkSession.builder.appName('Fitness').getOrCreate()
+csv_filepath="/content/sample_data/Fitness.csv"
+df_fitness=spark.read.csv(csv_filepath,header=True,inferSchema=True)
+df_fitness.show()
+
+# Exercises:
+# 1. Find the Total Steps Taken by Each User
+# Calculate the total number of steps taken by each user across all days.
+
+df_steps=df_fitness.groupBy('user_id').sum('steps')
+df_steps.show()
+# 2. Filter Days Where a User Burned More Than 500 Calories
+# Identify all days where a user burned more than 500 calories.
+df_caolories=df_fitness.filter(df_fitness['calories']>500)
+df_caolories.show()
+# 3. Calculate the Average Distance Traveled by Each User
+# Calculate the average distance traveled ( distance_km ) by each user
+# across all days.
+df_avg=df_fitness.groupBy('user_id').avg('distance_km')
+df_avg.show()
+# 4. Identify the Day with the Maximum Steps for Each User
+# For each user, find the day when they took the maximum number of steps.
+from pyspark.sql.functions import max
+df_max=df_fitness.groupBy('user_id').agg(max('steps').alias('max_steps'))
+df_max.show()
+
+# 5. Find Users Who Were Active for More Than 100 Minutes on Any Day
+# Identify users who had active minutes greater than 100 on any day.
+df_active=df_fitness.filter(df_fitness['active_minutes']>100)
+df_active.show()
+
+# 6. Calculate the Total Calories Burned per Day
+# Group by date and calculate the total number of calories burned by all
+df_calories_day=df_fitness.groupBy('date').sum('calories').alias('total_calories_burned')
+df_calories_day.show()
+
+# 7. Calculate the Average Steps per Day
+# Find the average number of steps taken across all users for each day.
+df_avg_steps=df_fitness.groupBy('date').avg('steps').alias('average_steps')
+df_avg_steps.show()
+# 8. Rank Users by Total Distance Traveled
+# Rank the users by their total distance traveled, from highest to lowest.
+
+ranking_by_distance_traveled = df_fitness.groupBy('user_id').agg({'distance_km': 'sum'}).orderBy('sum(distance_km)', ascending=False)
+ranking_by_distance_traveled.show()
+
+# 9. Find the Most Active User by Total Active Minutes
+# Identify the user with the highest total active minutes across all days.
+df_most_active=df_fitness.groupBy('user_id').sum('active_minutes').alias('total_active_minutes')
+df_most_active.show()
+# 10. Create a New Column for Calories Burned per Kilometer
+
+df_fitness=df_fitness.withColumn('calories_per_km',df_fitness['calories']/df_fitness['distance_km'])
+df_fitness.show()

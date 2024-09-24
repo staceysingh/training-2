@@ -1,0 +1,376 @@
+!pip install pyspark
+
+ E-commerce Transactions 
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql import col
+
+spark=SparkSession.builder.appName("pyspark_assesment").getOrCreate()
+
+transactions=[(1,101,'Laptop','Electronics',1000,1,10,'2023-08-01'),
+(2,102,'Smartphone','Electronics',700,2,5,'2023-08-01'),
+(3,103,'Shirt','Fashion',40,3,0,'2023-08-02'),
+(4,104,'Blender','Home Appliance',150,1,15,'2023-08-03'),
+(5,101,'Headphones','Electronics',100,2,10,'2023-08-03'),
+(6,105,'Shoes','Fashion',60,1,20,'2023-08-04'),
+(7,106,'Refrigerator','Home Appliance',800,1,25,'2023-08-05'),
+(8,107,'Book','Books',20,4,0,'2023-08-05'),
+(9,108,'Toaster','Home Appliance',30,1,5,'2023-08-06'),
+(10,102,'Tablet','Electronics',300,2,10,'2023-08-06'),
+]
+
+transaction_columns=['transaction_id','customer_id','product','category','price','quantity','discount_percentage','transaction_date']
+transactions_df=spark.createDataFrame(transactions,schema=transaction_columns)
+transactions_df.show()
+transactions_df.printSchema()
+
+
+
+#1. Calculate the Total Revenue per Category
+
+Total_revenue=transactions_df.withColumn("revenue",(100-(col("discount_percentage")/100))*col("price")).groupBy("category").sum("revenue")
+Total_revenue.show()
+
+#2. Filter Transactions with a Discount Greater Than 10%
+
+filter1=transactions_df.filter(transactions_df.discount_percentage>10)
+filter1.show()
+
+#3. Find the Most Expensive Product Sold
+
+max_priced_product=transactions_df.orderBy(desc("price")).limit(1)
+max_priced_product.show()
+
+# 4.average price of products per category
+
+average_price=transactions_df.groupBy("category").avg("price")
+average_price.show()
+
+# 5.Who bougth more than one product
+multiple_transactions=transactions_df.groupBy("customer_id").count().filter(col("count")>1)
+multiple_transactions.show()
+
+#6. Find the Top 3 Highest Revenue Transactions
+Total_revenue=transactions_df.withColumn("revenue",col("price")*col("quantity"))
+top_three=Total_revenue.orderBy(desc("revenue")).limit(3)
+top_three.show()
+
+#7. Calculate the Total Number of Transactions per Day
+total_transactions_per_day=transactions_df.groupBy("transaction_date").count()
+total_transactions_per_day.show()
+
+#8. Customer Who spent most money
+revenue=transactions_df.withColumn("revenue",col("quantity")*col("price"))
+Valuable_customer_revenue=revenue.groupBy("Customer_id").agg(sum("revenue").alias("customer_revenue"))
+Valuable_customer=Valuable_customer_revenue.orderBy(desc("customer_revenue")).limit(1)
+Valuable_customer.show()
+
+#9. Calculate the Average Discount Given per Product Category
+discount_products=transactions_df.groupBy("category").avg("discount_percentage")
+discount_products.show()
+
+#10. Create a New Column for Final Price After Discount
+final_price=transactions_df.withColumn("final_price", ( col("price") - (col('price') * col('discount_percentage') / 100) ))
+final_price.show()
+
+
+
+Banking Transactions 
+
+from pyspark.sql import SparkSession
+from pyspark.sql import *
+
+spark=SparkSession.builder.appName("pyspark_assesment").getOrCreate()
+data = [
+    (1, 201, "Deposit", 5000, "2023-09-01"),
+    (2, 202, "Withdrawal", 2000, "2023-09-01"),
+    (3, 203, "Deposit", 3000, "2023-09-02"),
+    (4, 201, "Withdrawal", 1500, "2023-09-02"),
+    (5, 204, "Deposit", 10000, "2023-09-03"),
+    (6, 205, "Withdrawal", 500, "2023-09-03"),
+    (7, 202, "Deposit", 2500, "2023-09-04"),
+    (8, 206, "Withdrawal", 700, "2023-09-04"),
+    (9, 203, "Deposit", 4000, "2023-09-05"),
+    (10, 204, "Withdrawal", 3000, "2023-09-05")
+]
+columns1=["transaction_id","customer_id","transaction_type","amount","transaction_date"]
+banking_df=spark.createDataFrame(data,schema=columns1)
+banking_df.show()
+banking_df.printSchema()
+
+
+
+#1. Calculate the Total Deposit and Withdrawal Amounts
+
+total_grouped_data=banking_df.groupBy("transaction_type").sum("amount")
+total_grouped_data.show()
+
+#2. Filter Transactions Greater Than $3,000
+filter2=banking_df.filter(banking_df.amount>3000)
+filter2.show()
+
+#3. Find the Largest Deposit Made
+largest_deposit=banking_df.filter(banking_df.transaction_type=="Deposit").orderBy(desc("amount")).limit(1)
+largest_deposit.show()
+
+#4. Calculate the Average Withdrawal Amount
+average_withdrawal=banking_df.groupBy("transaction_type").agg(avg("amount"))
+average_withdrawal.show()
+
+#5. Find Customers Who Made Both Deposits and Withdrawals
+deposit_df = transactions_df.filter(col("transaction_type") == "Deposit").select("customer_id").distinct()
+withdrawal_df = transactions_df.filter(col("transaction_type") == "Withdrawal").select("customer_id").distinct()
+customers_both = deposit_df.join(withdrawal_df, on="customer_id", how="inner")
+customers_both.show()
+
+# 6. Calculate the Total Amount of Transactions per Day
+transactions_per_day=banking_df.groupBy("transaction_date").sum("amount")
+transactions_per_day.show()
+
+#7. Find the Customer with the Highest Total Withdrawal
+highest_withdrawl=banking_df.filter(banking_df.transaction_type=="Withdrawal").groupBy("customer_id").sum("amount").orderBy(desc("sum(amount)")).limit(1)
+highest_withdrawl.show()
+
+# 8. Calculate the Number of Transactions for Each Customer
+transactions_per_customer=banking_df.groupBy("customer_id").count()
+transactions_per_customer.show()
+
+#9.Find All Transactions That Occurred on the Same Day as a Withdrawal Greater Than $1,000
+withdrawals_df = banking_df.filter((col("transaction_type") == "Withdrawal") & (col("amount") > 1000))
+dates_with_large_withdrawals = withdrawals_df.select("transaction_date").distinct()
+all_transactions_on_dates = banking_df.join(dates_with_large_withdrawals, on="transaction_date", how="inner")
+all_transactions_on_dates.show()
+
+#10. Create a New Column to Classify Transactions as "High" or "Low" Value
+classifier=banking_df.withColumn("transaction_value", when(col("amount")>=5000,"High").otherwise("Low"))
+classifier.show()
+
+
+
+
+Health & Fitness Tracker Data 
+
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DoubleType, DateType
+from pyspark.sql.functions import col
+
+spark = SparkSession.builder.appName("Health Data").getOrCreate()
+data1 = [
+    (1, "2023-09-01", 12000, 500, 7.0, "Cardio"),
+    (2, "2023-09-01", 8000, 400, 6.5, "Strength"),
+    (3, "2023-09-01", 15000, 650, 8.0, "Yoga"),
+    (1, "2023-09-02", 10000, 450, 6.0, "Cardio"),
+    (2, "2023-09-02", 9500, 500, 7.0, "Cardio"),
+    (3, "2023-09-02", 14000, 600, 7.5, "Strength"),
+    (1, "2023-09-03", 13000, 550, 8.0, "Yoga"),
+    (2, "2023-09-03", 12000, 520, 6.5, "Yoga"),
+    (3, "2023-09-03", 16000, 700, 7.0, "Cardio")
+]
+schema = StructType([
+    StructField("user_id", IntegerType(), True),
+    StructField("date", StringType(), True),  # Keeping Date as String initially
+    StructField("steps_count", IntegerType(), True),
+    StructField("calories_burned", IntegerType(), True),
+    StructField("hours_of_sleep", DoubleType(), True),
+    StructField("workout_type", StringType(), True)
+])
+health_df = spark.createDataFrame(data1, schema)
+health_df.show()
+health_df.printSchema()
+
+
+
+#1.Total steps by each user
+total_steps=health_df.groupBy("user_id").sum("steps_count")
+total_steps.show()
+
+# 2.Filter Days with More Than 10,000 Steps
+filter3=health_df.filter(health_df.steps_count>10000)
+filter3.show()
+
+#3.Average Calories Burned by Workout Type
+average_calories=health_df.groupBy("workout_type").avg("calories_burned")
+average_calories.show()
+
+# 4.Identify the Day with the Most Steps for Each User
+most_steps=health_df.groupBy("user_id","date").sum("steps_count").orderBy("sum(steps_count)",ascending=False)
+most_steps.show()
+
+#5.Find Users Who Burned More Than 600 Calories on Any Day
+calories_burned=health_df.filter(health_df.calories_burned>600)
+calories_burned.show()
+
+#6.calculate the Average Hours of Sleep per User
+average_sleep=health_df.groupBy("user_id").avg("hours_of_sleep")
+average_sleep.show()
+
+# 7.7. Find the Total Calories Burned per Day
+avg_calories_per_day=health_df.groupBy("date").sum("calories_burned")
+avg_calories_per_day.show()
+
+#8.identify Users Who Did Different Types of Workouts
+diff_users = health_df.groupBy("user_id").agg(countDistinct("workout_type").alias("distinct_workout_types"))
+diff_users = diff_users.filter(col("distinct_workout_types") > 1)
+diff_users.show()
+
+#9 Calculate the Total Number of Workouts per User
+workouts_per_user=health_df.groupBy("user_id").count()
+workouts_per_user.show()
+
+#10.Create a New Column for "Active" Days
+
+Active_days=health_df.withColumn("Activity", when(col("calories_burned")>10000,"Active").otherwise("Inactive"))
+Active_days.show()
+
+
+
+Music Streaming Data 
+
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DoubleType, DateType
+from pyspark.sql.functions import col
+
+
+spark = SparkSession.builder.appName("Health Data").getOrCreate()
+data = [
+    (1, "Blinding Lights", "The Weeknd", 200, "2023-09-01 08:15:00", "New York"),
+    (2, "Shape of You", "Ed Sheeran", 240, "2023-09-01 09:20:00", "Los Angeles"),
+    (3, "Levitating", "Dua Lipa", 180, "2023-09-01 10:30:00", "London"),
+    (1, "Starboy", "The Weeknd", 220, "2023-09-01 11:00:00", "New York"),
+    (2, "Perfect", "Ed Sheeran", 250, "2023-09-01 12:15:00", "Los Angeles"),
+    (3, "Don't Start Now", "Dua Lipa", 200, "2023-09-02 08:10:00", "London"),
+    (1, "Save Your Tears", "The Weeknd", 210, "2023-09-02 09:00:00", "New York"),
+    (2, "Galway Girl", "Ed Sheeran", 190, "2023-09-02 10:00:00", "Los Angeles"),
+    (3, "New Rules", "Dua Lipa", 230, "2023-09-02 11:00:00", "London")
+]
+columns=["user_id","song_title","artist","duration_seconds","streaming_time",'location']
+music_df=spark.createDataFrame(data,schema=columns)
+music_df.show()
+
+
+# 1. Calculate the Total Listening Time for Each Use
+listening_time=music_df.groupBy("user_id").sum("duration_seconds")
+listening_time.show()
+
+#2. Filter Songs Streamed for More Than 200 Seconds
+streamed_songs=music_df.filter(music_df.duration_seconds>200)
+streamed_songs.show()
+
+#3. Find the Most Popular Artist
+most_popular_artist=music_df.groupBy("artist").count().orderBy(desc("count")).limit(1)
+most_popular_artist.show()
+
+#4 . Identify the Song with the Longest Duration
+longest_song=music_df.orderBy(desc("duration_seconds")).limit(1)
+longest_song.show()
+
+#5. Calculate the Average streaming time per artist
+average_listening_time=music_df.groupBy("artist").avg("duration_seconds")
+average_listening_time.show()
+
+#6.calculate the Average Song Duration by Artist
+avg_song_duration=music_df.groupBy("Artist").avg("duration_seconds")
+avg_song_duration.show()
+
+#7.Find the Top 3 Most Streamed Songs per User
+top_streamed=music_df.groupBy("user_id","song_title").count().orderBy(desc("count")).limit(3)
+top_streamed.show()
+
+#8.Identify Users Who Streamed Songs from More Than One Artist
+multiple_songs_listeners=music_df.groupBy("user_id").agg(countDistinct("artist").alias("distinct_artists"))
+multiple_songs_listeners=multiple_songs_listeners.filter(col("distinct_artists")>1)
+multiple_songs_listeners.show()
+
+#9. Calculate the Total Streams for Each Location
+total_streams=music_df.groupBy("location").count()
+total_streams.show()
+
+#10. Create a New Column to Classify Long and Short Songs
+classifier=music_df.withColumn("song_length", when(col("duration_seconds")>=200,"Long").otherwise("Short"))
+classifier.show()
+
+
+Retail Store Sales Data 
+
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, IntegerType, StringType, DoubleType, DateType
+from pyspark.sql.functions import col
+
+# Initialize Spark session
+spark = SparkSession.builder.appName("Retail Store Sales Data").getOrCreate()
+
+# Define the data as a list of tuples
+data = [
+    (1, "Apple", "Groceries", 0.50, 10, "2023-09-01"),
+    (2, "T-shirt", "Clothing", 15.00, 2, "2023-09-01"),
+    (3, "Notebook", "Stationery", 2.00, 5, "2023-09-02"),
+    (4, "Banana", "Groceries", 0.30, 12, "2023-09-02"),
+    (5, "Laptop", "Electronics", 800.00, 1, "2023-09-03"),
+    (6, "Pants", "Clothing", 25.00, 3, "2023-09-03"),
+    (7, "Headphones", "Electronics", 100.00, 2, "2023-09-04"),
+    (8, "Pen", "Stationery", 1.00, 10, "2023-09-04"),
+    (9, "Orange", "Groceries", 0.60, 8, "2023-09-05"),
+    (10, "Sneakers", "Clothing", 50.00, 1, "2023-09-05")
+]
+
+# Define the schema for the DataFrame
+schema = StructType([
+    StructField("transaction_id", IntegerType(), True),
+    StructField("product_name", StringType(), True),
+    StructField("category", StringType(), True),
+    StructField("price", DoubleType(), True),
+    StructField("quantity", IntegerType(), True),
+    StructField("sales_date", StringType(), True)  # Keeping Date as String initially
+])
+sales_df = spark.createDataFrame(data, schema)
+sales_df.show()
+sales_df.printSchema()
+
+
+
+
+
+# 1. Calculate the Total Revenue per Category
+total_revenue=sales_df.withColumn("rev",col('price')*col("quantity"))
+total_revenue=total_revenue.groupBy("category").agg(sum("rev").alias("total_revenue"))
+total_revenue.show()
+
+# 2. Filter Transactions Where the Total Sales Amount is Greater Than $100
+filter4=total_revenue.filter(total_revenue.total_revenue>100)
+filter4.show()
+
+#3. Find the Most Sold Product
+most_expensive_product=sales_df.groupBy("category").max("quantity")
+most_expensive_product.show()
+
+#4. Top 3 grossers
+top_three_grossers=sales_df.groupBy("product_name").sum("price")
+top_three_grossers.show()
+
+#5. Calculate the Average Price per Product Category
+avg_price=sales_df.groupBy("category").avg("price")
+avg_price.show()
+
+#6. Calculate the Total Number of Items Sold per Day
+total_items_sold=sales_df.groupBy("sales_date").sum("quantity")
+total_items_sold.show()
+
+#7. Identify the Product with the Lowest Price in Each Category
+lowest_price=sales_df.groupBy("category").min("price")
+lowest_price.show()
+
+# 8. Calculate the Total Revenue for Each Product
+total_revenue=sales_df.withColumn("rev",col('price')*col("quantity"))
+total_revenue=total_revenue.groupBy("product_name").agg(sum("rev").alias("total_revenue"))
+
+#9. Find the Total Sales per Day for Each Category
+total_sales_per_day=sales_df.groupBy("sales_date","category").sum("quantity")
+total_sales_per_day.show()
+
+#10. Create a New Column for discounted price
+discount_price=sales_df.withColumn("discounted_price",col("price")*0.9)
+discount_price.show()
